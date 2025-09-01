@@ -1,0 +1,6 @@
+## Interface: 30300
+## Title: MoonscarletsServerPop
+## Notes: Simple Alliance/Horde who counter
+## Author: You
+## Version: 1.0
+MoonscarletsServerPop.lua
