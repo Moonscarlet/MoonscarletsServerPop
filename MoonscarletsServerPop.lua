@@ -26,12 +26,12 @@ local function RunWho(zoneOnly, outputChannel)
             local msg = string.format("Alliance: %d (%d%%) Horde: %d (%d%%) Total: %d", A, Ap, H, Hp, T)
 
             if outputChannel == "LOCAL" then
-                print("|cff00ff00[WhoReport]|r " .. msg)
+                print("|cff00ff00[MoonscarletsServerPop]|r " .. msg)
             elseif outputChannel == "PARTY" then
                 if IsInGroup() then
                     SendChatMessage(msg, "PARTY")
                 else
-                    print("|cffff0000[WhoReport]|r Not in a party.")
+                    print("|cffff0000[MoonscarletsServerPop]|r Not in a party.")
                 end
             elseif outputChannel == "SAY" then
                 SendChatMessage(msg, "SAY")
