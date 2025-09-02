@@ -13,8 +13,8 @@ f.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 f.title:SetPoint("TOP", 0, -10)
 f.title:SetText("MoonscarletsServerPop")
 
-local function RunWho(zoneOnly, outputChannel, classFilter)
-    local z = zoneOnly and (" z-" .. GetZoneText()) or ""
+local function RunWho(zoneText, outputChannel, classFilter)
+    local z = (zoneText and zoneText ~= "") and (" z-" .. zoneText) or ""
     local c = (classFilter and classFilter ~= "ALL") and (" c-" .. classFilter) or ""
     local A, H = 0, 0
 
@@ -30,7 +30,7 @@ local function RunWho(zoneOnly, outputChannel, classFilter)
             local Ap = T > 0 and math.floor(A / T * 100) or 0
             local Hp = 100 - Ap
             local headerParts = {}
-            if zoneOnly then table.insert(headerParts, "Zone: " .. GetZoneText()) end
+            if zoneText and zoneText ~= "" then table.insert(headerParts, "Zone: " .. zoneText) end
             if classFilter and classFilter ~= "ALL" then
                 local cap = classFilter:sub(1,1):upper() .. classFilter:sub(2)
                 table.insert(headerParts, "Class: " .. cap)
@@ -70,37 +70,46 @@ end
 local selectedScope = "ZONE" -- "ZONE" or "TOTAL"
 local selectedOutput = "LOCAL" -- "LOCAL", "PARTY", or "SAY"
 local selectedClass = "ALL" -- "ALL" or class token (mage, warrior, etc.)
+local selectedZoneText = "" -- user-entered zone text
 
 -- UI: Scope Radios
 local scopeLabel = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 scopeLabel:SetPoint("TOPLEFT", 15, -35)
 scopeLabel:SetText("Scope")
 
-local scopeZone = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
-scopeZone:SetPoint("TOPLEFT", scopeLabel, "BOTTOMLEFT", 0, -6)
-scopeZone.value = "ZONE"
-local scopeZoneText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-scopeZoneText:SetPoint("LEFT", scopeZone, "RIGHT", 4, 0)
-scopeZoneText:SetText("Zone Only")
-
 local scopeTotal = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
-scopeTotal:SetPoint("LEFT", scopeZoneText, "RIGHT", 60, 0)
+scopeTotal:SetPoint("TOPLEFT", scopeLabel, "BOTTOMLEFT", 0, -6)
 scopeTotal.value = "TOTAL"
 local scopeTotalText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 scopeTotalText:SetPoint("LEFT", scopeTotal, "RIGHT", 4, 0)
 scopeTotalText:SetText("Total")
 
-local scopeButtons = { scopeZone, scopeTotal }
+local zoneLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+zoneLabel:SetPoint("LEFT", scopeTotalText, "RIGHT", 40, 0)
+zoneLabel:SetText("Zone:")
+
+local zoneInput = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+zoneInput:SetSize(160, 20)
+zoneInput:SetAutoFocus(false)
+zoneInput:SetPoint("LEFT", zoneLabel, "RIGHT", 6, 0)
+zoneInput:SetText("")
+zoneInput:SetScript("OnEditFocusGained", function()
+    selectedScope = "ZONE"
+    scopeTotal:SetChecked(false)
+end)
+zoneInput:SetScript("OnTextChanged", function()
+    selectedScope = "ZONE"
+    scopeTotal:SetChecked(false)
+end)
+zoneInput:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+
 local function SetScope(value)
     selectedScope = value
 end
-for _, b in ipairs(scopeButtons) do
-    b:SetScript("OnClick", function(self)
-        for _, bb in ipairs(scopeButtons) do bb:SetChecked(bb == self) end
-        SetScope(self.value)
-    end)
-end
-for _, bb in ipairs(scopeButtons) do bb:SetChecked(bb.value == selectedScope) end
+scopeTotal:SetScript("OnClick", function(self)
+    scopeTotal:SetChecked(true)
+    SetScope(self.value)
+end)
 
 -- UI: Output Radios
 local outputLabel = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -187,7 +196,8 @@ goBtn:SetSize(100, 24)
 goBtn:SetPoint("BOTTOMLEFT", 15, 12)
 goBtn:SetText("Go")
 goBtn:SetScript("OnClick", function()
-    RunWho(selectedScope == "ZONE", selectedOutput, selectedClass)
+    local zt = (selectedScope == "ZONE") and (zoneInput:GetText() or "") or ""
+    RunWho(zt, selectedOutput, selectedClass)
 end)
 
 local cancelBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
@@ -199,5 +209,10 @@ cancelBtn:SetScript("OnClick", function() f:Hide() end)
 -- Slash command
 SLASH_SERVERPOP1 = "/sp"
 SlashCmdList["SERVERPOP"] = function()
+    if zoneInput then
+        zoneInput:SetText(GetZoneText() or "")
+        selectedScope = "ZONE"
+        scopeTotal:SetChecked(false)
+    end
     f:Show()
 end
