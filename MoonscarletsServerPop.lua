@@ -60,6 +60,7 @@ local function RunWho(zoneText, outputChannel, classFilter)
                     SendChatMessage(L, "SAY")
                 end
             end
+            FriendsFrame:Hide()
         end)
     end)
 
