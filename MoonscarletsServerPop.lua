@@ -10,7 +10,7 @@ f:SetScript("OnDragStop", f.StopMovingOrSizing)
 f:SetClampedToScreen(true)
 
 f.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-f.title:SetPoint("TOP", 0, -10)
+f.title:SetPoint("TOP", 0, -6)
 f.title:SetText("MoonscarletsServerPop")
 
 local function RunWho(zoneText, outputChannel, classFilter)
@@ -84,8 +84,12 @@ local scopeTotalText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 scopeTotalText:SetPoint("LEFT", scopeTotal, "RIGHT", 4, 0)
 scopeTotalText:SetText("Total")
 
+local scopeZone = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
+scopeZone:SetPoint("LEFT", scopeTotalText, "RIGHT", 40, 0)
+scopeZone.value = "ZONE"
+
 local zoneLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-zoneLabel:SetPoint("LEFT", scopeTotalText, "RIGHT", 40, 0)
+zoneLabel:SetPoint("LEFT", scopeZone, "RIGHT", 4, 0)
 zoneLabel:SetText("Zone:")
 
 local zoneInput = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
@@ -96,10 +100,12 @@ zoneInput:SetText("")
 zoneInput:SetScript("OnEditFocusGained", function()
     selectedScope = "ZONE"
     scopeTotal:SetChecked(false)
+    if scopeZone then scopeZone:SetChecked(true) end
 end)
 zoneInput:SetScript("OnTextChanged", function()
     selectedScope = "ZONE"
     scopeTotal:SetChecked(false)
+    if scopeZone then scopeZone:SetChecked(true) end
 end)
 zoneInput:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
 
@@ -108,12 +114,19 @@ local function SetScope(value)
 end
 scopeTotal:SetScript("OnClick", function(self)
     scopeTotal:SetChecked(true)
+    if scopeZone then scopeZone:SetChecked(false) end
+    SetScope(self.value)
+end)
+
+scopeZone:SetScript("OnClick", function(self)
+    if scopeZone then scopeZone:SetChecked(true) end
+    scopeTotal:SetChecked(false)
     SetScope(self.value)
 end)
 
 -- UI: Output Radios
 local outputLabel = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-outputLabel:SetPoint("TOPLEFT", scopeZone, "BOTTOMLEFT", 0, -16)
+outputLabel:SetPoint("TOPLEFT", scopeTotal, "BOTTOMLEFT", 0, -12)
 outputLabel:SetText("Output")
 
 local outLocal = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
@@ -124,14 +137,14 @@ outLocalText:SetPoint("LEFT", outLocal, "RIGHT", 4, 0)
 outLocalText:SetText("Local")
 
 local outParty = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
-outParty:SetPoint("LEFT", outLocalText, "RIGHT", 60, 0)
+outParty:SetPoint("LEFT", outLocalText, "RIGHT", 80, 0)
 outParty.value = "PARTY"
 local outPartyText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 outPartyText:SetPoint("LEFT", outParty, "RIGHT", 4, 0)
 outPartyText:SetText("Party")
 
 local outSay = CreateFrame("CheckButton", nil, f, "UIRadioButtonTemplate")
-outSay:SetPoint("LEFT", outPartyText, "RIGHT", 60, 0)
+outSay:SetPoint("LEFT", outPartyText, "RIGHT", 80, 0)
 outSay.value = "SAY"
 local outSayText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 outSayText:SetPoint("LEFT", outSay, "RIGHT", 4, 0)
@@ -151,7 +164,7 @@ for _, bb in ipairs(outputButtons) do bb:SetChecked(bb.value == selectedOutput) 
 
 -- UI: Class Radios
 local classLabel = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-classLabel:SetPoint("TOPLEFT", outLocal, "BOTTOMLEFT", 0, -16)
+classLabel:SetPoint("TOPLEFT", outputLabel, "BOTTOMLEFT", 0, -18)
 classLabel:SetText("Class")
 
 local classTokens = { "ALL", "priest", "warrior", "rogue", "hunter", "mage", "shaman", "paladin", "warlock", "druid" }
